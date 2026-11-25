@@ -19,23 +19,17 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Manipulador global de exceções.
- * Intercepta os erros lançados pelos controllers e devolve uma {@link ErroResposta} padronizada.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    /** 404 - registro não encontrado. */
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErroResposta> tratarNaoEncontrado(RecursoNaoEncontradoException ex,
                                                             HttpServletRequest request) {
         return montarResposta(HttpStatus.NOT_FOUND, ex.getMessage(), request, null);
     }
 
-    /** 400 - falha nas validações (@Valid, @NotBlank, @NotNull...). */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErroResposta> tratarValidacao(MethodArgumentNotValidException ex,
                                                         HttpServletRequest request) {
@@ -46,7 +40,6 @@ public class GlobalExceptionHandler {
         return montarResposta(HttpStatus.BAD_REQUEST, "Dados inválidos", request, campos);
     }
 
-    /** 400 - JSON malformado ou com tipos incorretos no corpo da requisição. */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErroResposta> tratarJsonInvalido(HttpMessageNotReadableException ex,
                                                            HttpServletRequest request) {
@@ -54,7 +47,6 @@ public class GlobalExceptionHandler {
                 "Corpo da requisição inválido ou malformado", request, null);
     }
 
-    /** 400 - parâmetro de URL com tipo errado (ex.: /api/livros/abc). */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErroResposta> tratarTipoInvalido(MethodArgumentTypeMismatchException ex,
                                                            HttpServletRequest request) {
@@ -62,7 +54,6 @@ public class GlobalExceptionHandler {
         return montarResposta(HttpStatus.BAD_REQUEST, mensagem, request, null);
     }
 
-    /** 409 - violação de integridade (ex.: excluir um Autor que ainda possui Livros). */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErroResposta> tratarIntegridade(DataIntegrityViolationException ex,
                                                           HttpServletRequest request) {
@@ -70,10 +61,6 @@ public class GlobalExceptionHandler {
                 "Operação viola a integridade dos dados (registro em uso ou duplicado)", request, null);
     }
 
-    /**
-     * Erros do próprio Spring MVC que já carregam um status HTTP
-     * (ex.: 404 rota inexistente, 405 método não suportado) mantêm esse status.
-     */
     @ExceptionHandler(ErrorResponseException.class)
     public ResponseEntity<ErroResposta> tratarErroDoSpring(ErrorResponseException ex,
                                                            HttpServletRequest request) {
@@ -81,14 +68,12 @@ public class GlobalExceptionHandler {
         return montarResposta(status, ex.getBody().getDetail(), request, null);
     }
 
-    /** 405 - método HTTP não suportado no endpoint (ex.: PATCH em /api/livros). */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErroResposta> tratarMetodoNaoSuportado(HttpRequestMethodNotSupportedException ex,
                                                                  HttpServletRequest request) {
         return montarResposta(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage(), request, null);
     }
 
-    /** 500 - qualquer erro inesperado. O detalhe vai para o log, não para o cliente. */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroResposta> tratarErroGenerico(Exception ex, HttpServletRequest request) {
         log.error("Erro inesperado em {}", request.getRequestURI(), ex);
@@ -96,7 +81,6 @@ public class GlobalExceptionHandler {
                 "Erro interno no servidor", request, null);
     }
 
-    /** Monta o corpo padronizado da resposta de erro. */
     private ResponseEntity<ErroResposta> montarResposta(HttpStatus status, String mensagem,
                                                         HttpServletRequest request,
                                                         Map<String, String> campos) {
